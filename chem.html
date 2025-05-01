@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Solution Concentration Calculator</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            background-color: white;
+            border-radius: 8px;
+            padding: 60px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            margin-top: 30px;
+            width: 80%;
+            max-width: 600px; /* Adjusted for better form layout */
+        }
+
+        h2 {
+            color: #333;
+            font-size: 2.5em;
+        }
+
+        label {
+            display: block;
+            margin-top: 20px;
+            font-weight: bold;
+            text-align: left; /* Align labels to the left */
+        }
+
+        input[type="text"], input[type="number"] {
+            width: calc(100% - 22px); /* Account for padding and border */
+            padding: 10px;
+            margin-top: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 1em;
+        }
+
+        button {
+            background-color: #008CBA;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            font-size: 1.1em;
+            margin-top: 30px;
+        }
+
+        button:hover {
+            background-color: #006a8a;
+        }
+
+        #output {
+            margin-top: 30px;
+            font-weight: bold;
+            color: #333;
+            font-size: 1.1em;
+            text-align: left; /* Align output to the left */
+        }
+    </style>
+    <script>
+
+
+     const molarMasses = {
+            "H": 1.008, "He": 4.0026, "Li": 6.94, "Be": 9.0122, "B": 10.81, "C": 12.011, "N": 14.007,
+            "O": 16.00, "F": 18.998, "Ne": 20.180, "Na": 22.990, "Mg": 24.305, "Al": 26.982, "Si": 28.085,
+            "P": 30.974, "S": 32.06, "Cl": 35.45, "K": 39.098, "Ca": 40.078, "Fe": 55.845, "Cu": 63.546,
+            "Zn": 65.38, "Ag": 107.87, "I": 126.90, "Ba": 137.33
+        };
+
+        const valencies = {
+            "H": 1, "O": 2, "Na": 1, "Cl": 1, "Mg": 2, "Al": 3, "S": 2, "Ca": 2, "Fe": 2, "Cu": 2, "Zn": 2
+        };
+
+        function calculateMolarMass(compound) {
+            let elements = compound.match(/[A-Z][a-z]?\d*/g) || [];
+            let totalMass = 0;
+            
+            elements.forEach(el => {
+                let match = el.match(/([A-Z][a-z]?)(\d*)/);
+                if (match) {
+                    let element = match[1];
+                    let count = parseInt(match[2]) || 1;
+                    if (molarMasses[element]) {
+                        totalMass += molarMasses[element] * count;
+                    }
+                }
+            });
+            return totalMass || "Unknown";
+        }
+
+        function calculateValency(compound) {
+            const commonCompounds = {
+                "NaOH": 1, "H2SO4": 2, "HCl": 1, "CaCl2": 2, "Al2O3": 3, "FeCl3": 3, "NH3": 3
+            };
+            if (commonCompounds[compound]) {
+                return commonCompounds[compound];
+            }
+            
+            let elements = compound.match(/[A-Z][a-z]?\d*/g) || [];
+            let highestValency = 0;
+            
+            elements.forEach(el => {
+                let match = el.match(/([A-Z][a-z]?)(\d*)/);
+                if (match) {
+                    let element = match[1];
+                    if (valencies[element]) {
+                        highestValency = Math.max(highestValency, valencies[element]);
+                    }
+                }
+            });
+            return highestValency || "Unknown";
+        }
+
+        function calculateConcentrations() {
+            let weight = parseFloat(document.getElementById("weight").value);
+            let volume = parseFloat(document.getElementById("volume").value);
+            let compound = document.getElementById("compound").value;
+            let solventMass = parseFloat(document.getElementById("solventMass").value);
+
+            let molarMass = calculateMolarMass(compound);
+            let valency = calculateValency(compound);
+            
+            if (molarMass === "Unknown" || valency === "Unknown" || isNaN(weight) || isNaN(volume) || isNaN(solventMass) || volume <= 0 || solventMass <= 0) {
+                document.getElementById("output").innerHTML = "Please enter valid inputs.";
+                return;
+            }
+            
+            let moles = weight / molarMass;
+            let molarity = moles / (volume / 1000);
+            let normality = molarity * valency;
+            let molality = moles / solventMass;
+
+            document.getElementById("output").innerHTML = `
+                <b>Molar Mass of ${compound}:</b> ${molarMass.toFixed(3)} g/mol<br>
+                <b>Valency of ${compound}:</b> ${valency}<br>
+                <b>Number of Moles:</b> ${moles.toFixed(3)} mol<br>
+                <b>Molarity (M):</b> ${molarity.toFixed(3)} mol/L<br>
+                <b>Normality (N):</b> ${normality.toFixed(3)} eq/L<br>
+                <b>Molality (m):</b> ${molality.toFixed(3)} mol/kg
+            `;
+        }
+    </script>
+</head>
+<body>
+    <div class="container"> 
+        <h2>Solution Concentration Calculator</h2>
+        <label for="compound">Compound (e.g., H<sub>2</sub>O, NaCl, NaOH):</label>
+        <input type="text" id="compound"><br>
+        <label for="weight">Weight of Solute (g):</label>
+        <input type="number" id="weight"><br>
+        <label for="volume">Volume of Solution (mL):</label>
+        <input type="number" id="volume"><br>
+        <label for="solventMass">Mass of Solvent (kg):</label>
+        <input type="number" id="solventMass"><br>
+        <button onclick="calculateConcentrations()">Calculate</button> 
+        <p id="output"></p>
+    </div> 
+</body>
+</html>
